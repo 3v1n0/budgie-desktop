@@ -15,32 +15,28 @@ budgie_wm_sources = [
     'wm.vala',
 ]
 
-vapi_mutter = 'libmutter-3'
-dep_mutter = dependency('libmutter-3', version: gnome_minimum_version, required: false)
-if not dep_mutter.found()
-    dep_mutter = dependency('libmutter-4', version: gnome_minimum_version)
-    if dep_mutter.found()
-        message('Using new libmutter-4 ABI from GNOME 3.32')
-        vapi_mutter = 'libmutter-4'
-    endif
-endif
-
 budgie_wm_deps = [
     link_libconfig,
-    dep_mutter,
     dep_gnomedesktop,
     dep_gsettings,
     dep_ibus,
+    libmutter_vapi,
 ]
 
 budgie_wm_vala_args =  [
-        '--pkg', 'gio-unix-2.0',
-        '--pkg', 'ibus-1.0',
-        '--pkg', 'gnome-desktop-3.0',
-        '--pkg', vapi_mutter,
         '--pkg', 'budgie-config',
+        '--pkg', 'gdk-3.0',
+        '--pkg', 'gdk-pixbuf-2.0',
+        '--pkg', 'gio-unix-2.0',
+        '--pkg', 'gnome-desktop-3.0',
         '--pkg', 'gsettings-desktop-schemas',
-        '--vapidir', join_paths(meson.source_root(), 'vapi'),
+        '--pkg', 'gtk+-3.0',
+        '--pkg', 'json-glib-1.0',
+        '--pkg', 'ibus-1.0',
+        '--pkg', 'x11',
+        '--pkg', 'xfixes-4.0',
+        '--vapidir', local_vapidir,
+        '--vapidir', built_vapidir,
         '--vapidir', dir_libconfig,
 ]
 
@@ -59,6 +55,14 @@ executable(
     vala_args: budgie_wm_vala_args,
     c_args: [
         '-DGNOME_DESKTOP_USE_UNSTABLE_API',
+        # Because of usage of custom vapi as dependencies we can't use dependency
+        # otherwise we'd get the vapi loaded twice
+        run_command('pkg-config', '--cflags', mutter_dep_name).stdout().strip().split(' '),
+    ],
+    link_args: [
+        # Because of usage of custom vapi as dependencies we can't use dependency
+        # otherwise we'd get the vapi loaded twice
+        run_command('pkg-config', '--libs', mutter_dep_name).stdout().strip().split(' '),
     ],
     install_rpath: rpath,
 )

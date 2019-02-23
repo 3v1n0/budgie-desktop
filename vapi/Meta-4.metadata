@@ -99,3 +99,6 @@ init skip=false
 run skip=false
 show_dialog skip=false
 get_backend cheader_filename="meta/meta-backend.h"
+
+/* Redefined in custom vapi with optional parameter */
+Display.grab_accelerator skip=true
